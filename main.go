@@ -29,14 +29,13 @@ func main() {
 		fatal(err.Error())
 	}
 
-	reader := bufio.NewReader(in)
-	writer := bufio.NewWriter(out)
-
 	f, err := os.Create(cfg.OutFile)
 	if err != nil {
 		fatal(err.Error())
 	}
 	fWriter := bufio.NewWriter(f)
+	reader := bufio.NewReader(in)
+	writer := bufio.NewWriter(out)
 
 	n := 0
 	for {
@@ -52,19 +51,20 @@ func main() {
 		write(writer, buf[:n])
 		write(fWriter, buf[:n])
 	}
-	err = writer.Flush()
-	if err != nil {
-		fatal(err.Error())
-	}
-	err = fWriter.Flush()
-	if err != nil {
-		fatal(err.Error())
-	}
+	flush(writer)
+	flush(fWriter)
 }
 
 func fatal(msg string) {
 	fmt.Fprintf(os.Stderr, "%v\n", msg) // nolint
 	os.Exit(-1)
+}
+
+func flush(w *bufio.Writer) {
+	err := w.Flush()
+	if err != nil {
+		fatal(err.Error())
+	}
 }
 
 func write(w io.Writer, buf []byte) {
