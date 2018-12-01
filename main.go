@@ -17,8 +17,6 @@ var (
 
 func main() {
 	type configFlags struct {
-		Input   string `json:"i" cfg:"i" cfgDefault:"stdin" cfgHelper:"input from"`
-		Output  string `json:"o" cfg:"o" cfgDefault:"stdout" cfgHelper:"output to"`
 		OutFile string `json:"f" cfg:"f" cfgRequired:"true" cfgHelper:"output file name"`
 	}
 
