@@ -32,8 +32,8 @@ func main() {
 		fatal(err.Error())
 	}
 	fWriter := bufio.NewWriter(f)
-	reader := bufio.NewReader(in)
 	writer := bufio.NewWriter(out)
+	reader := bufio.NewReader(in)
 
 	n := 0
 	for {
