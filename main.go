@@ -19,7 +19,7 @@ func main() {
 	type configFlags struct {
 		Input   string `json:"i" cfg:"i" cfgDefault:"stdin" cfgHelper:"input from"`
 		Output  string `json:"o" cfg:"o" cfgDefault:"stdout" cfgHelper:"output to"`
-		OutFile string `json:"f" cfg:"f" cfgDefault:"" cfgHelper:"output file name"`
+		OutFile string `json:"f" cfg:"f" cfgRequired:"true" cfgHelper:"output file name"`
 	}
 
 	cfg := configFlags{}
@@ -48,13 +48,42 @@ func main() {
 				break
 			}
 		}
-		writer.Write(buf[:n])
-		fWriter.Write(buf[:n])
+		n, err = writer.Write(buf[:n])
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		if n < len(buf[:n]) {
+			fmt.Println(io.ErrShortWrite)
+			return
+		}
+		n, err = fWriter.Write(buf[:n])
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		if n < len(buf[:n]) {
+			fmt.Println(io.ErrShortWrite)
+			return
+		}
 	}
 	writer.Flush()
 	fWriter.Flush()
+
 }
 
 func printErrorln(msg string) {
 	fmt.Fprintf(os.Stderr, "%v\n", msg) // nolint
+}
+
+func write(w *bufio.Writer, buf []byte) {
+	n, err := w.Write(buf)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(-1)
+	}
+	if n < len(buf) {
+		fmt.Println(io.ErrShortWrite)
+		os.Exit(-1)
+	}
 }
