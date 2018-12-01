@@ -26,14 +26,16 @@ func main() {
 	goconfig.PrefixEnv = "YPIPE"
 	err := goconfig.Parse(&cfg)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(-1)
+		fatal(err.Error())
 	}
 
 	reader := bufio.NewReader(in)
 	writer := bufio.NewWriter(out)
 
 	f, err := os.Create(cfg.OutFile)
+	if err != nil {
+		fatal(err.Error())
+	}
 	fWriter := bufio.NewWriter(f)
 
 	n := 0
@@ -41,49 +43,36 @@ func main() {
 		n, err = reader.Read(buf)
 		if err != nil {
 			if err != io.EOF {
-				printErrorln(err.Error())
-				os.Exit(-1)
+				fatal(err.Error())
 			}
 			if n == 0 {
 				break
 			}
 		}
-		n, err = writer.Write(buf[:n])
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		if n < len(buf[:n]) {
-			fmt.Println(io.ErrShortWrite)
-			return
-		}
-		n, err = fWriter.Write(buf[:n])
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		if n < len(buf[:n]) {
-			fmt.Println(io.ErrShortWrite)
-			return
-		}
+		write(writer, buf[:n])
+		write(fWriter, buf[:n])
 	}
-	writer.Flush()
-	fWriter.Flush()
-
+	err = writer.Flush()
+	if err != nil {
+		fatal(err.Error())
+	}
+	err = fWriter.Flush()
+	if err != nil {
+		fatal(err.Error())
+	}
 }
 
-func printErrorln(msg string) {
+func fatal(msg string) {
 	fmt.Fprintf(os.Stderr, "%v\n", msg) // nolint
+	os.Exit(-1)
 }
 
-func write(w *bufio.Writer, buf []byte) {
+func write(w io.Writer, buf []byte) {
 	n, err := w.Write(buf)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(-1)
+		fatal(err.Error())
 	}
 	if n < len(buf) {
-		fmt.Println(io.ErrShortWrite)
-		os.Exit(-1)
+		fatal(err.Error())
 	}
 }
